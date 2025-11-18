@@ -6,11 +6,16 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Business logic and service layer for the LLM Registry - Model management, versioning, and validation"
 
 [dependencies]
 # Internal crates
-llm-registry-core = { path = "../llm-registry-core" }
-llm-registry-db = { path = "../llm-registry-db" }
+llm-registry-core = { version = "0.1.0", path = "../llm-registry-core" }
+llm-registry-db = { version = "0.1.0", path = "../llm-registry-db" }
 
 # Async runtime and traits
 async-trait = "0.1"

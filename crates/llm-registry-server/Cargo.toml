@@ -6,6 +6,11 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Production-ready server for the LLM Registry - Complete deployment solution with observability"
 
 [[bin]]
 name = "llm-registry-server"
@@ -13,10 +18,10 @@ path = "src/main.rs"
 
 [dependencies]
 # Internal crates
-llm-registry-core = { path = "../llm-registry-core" }
-llm-registry-db = { path = "../llm-registry-db" }
-llm-registry-service = { path = "../llm-registry-service" }
-llm-registry-api = { path = "../llm-registry-api" }
+llm-registry-core = { version = "0.1.0", path = "../llm-registry-core" }
+llm-registry-db = { version = "0.1.0", path = "../llm-registry-db" }
+llm-registry-service = { version = "0.1.0", path = "../llm-registry-service" }
+llm-registry-api = { version = "0.1.0", path = "../llm-registry-api" }
 
 # Web framework
 axum = { version = "0.8" }

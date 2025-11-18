@@ -15,10 +15,10 @@ edition.workspace = true
 publish = false
 
 [dependencies]
-llm-registry-core = { path = "crates/llm-registry-core" }
-llm-registry-db = { path = "crates/llm-registry-db" }
-llm-registry-service = { path = "crates/llm-registry-service" }
-llm-registry-api = { path = "crates/llm-registry-api" }
+llm-registry-core = { version = "0.1.0", path = "crates/llm-registry-core" }
+llm-registry-db = { version = "0.1.0", path = "crates/llm-registry-db" }
+llm-registry-service = { version = "0.1.0", path = "crates/llm-registry-service" }
+llm-registry-api = { version = "0.1.0", path = "crates/llm-registry-api" }
 
 # Test dependencies
 tokio = { workspace = true }
@@ -38,8 +38,12 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.75.0"
 license = "Apache-2.0 OR MIT"
-repository = "https://github.com/llm-devops/llm-registry"
-authors = ["LLM DevOps Team"]
+repository = "https://github.com/globalbusinessadvisors/llm-registry"
+authors = ["Global Business Advisors"]
+homepage = "https://github.com/globalbusinessadvisors/llm-registry"
+documentation = "https://docs.rs/llm-registry-core"
+keywords = ["llm", "registry", "models", "ai", "ml"]
+categories = ["web-programming", "database"]
 
 [workspace.dependencies]
 # Async runtime

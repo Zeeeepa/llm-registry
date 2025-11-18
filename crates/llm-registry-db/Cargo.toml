@@ -6,10 +6,15 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Database layer for the LLM Registry - PostgreSQL integration with migrations and repository patterns"
 
 [dependencies]
 # Core dependency on domain types
-llm-registry-core = { path = "../llm-registry-core" }
+llm-registry-core = { version = "0.1.0", path = "../llm-registry-core" }
 
 # Async runtime and utilities
 tokio = { workspace = true }

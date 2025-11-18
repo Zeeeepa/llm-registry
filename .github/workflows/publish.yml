@@ -1,0 +1,84 @@
+name: Publish to crates.io
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    name: Publish crates to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run tests
+        run: cargo test --workspace --all-features
+
+      - name: Verify all crates can be packaged
+        run: |
+          cargo package --package llm-registry-core --allow-dirty
+          cargo package --package llm-registry-db --allow-dirty
+          cargo package --package llm-registry-service --allow-dirty
+          cargo package --package llm-registry-api --allow-dirty
+          cargo package --package llm-registry-server --allow-dirty
+
+      - name: Publish llm-registry-core
+        run: cargo publish --package llm-registry-core --token ${{ secrets.CRATES_SECRET }}
+        continue-on-error: true
+
+      - name: Wait for llm-registry-core to be available
+        run: sleep 30
+
+      - name: Publish llm-registry-db
+        run: cargo publish --package llm-registry-db --token ${{ secrets.CRATES_SECRET }}
+        continue-on-error: true
+
+      - name: Wait for llm-registry-db to be available
+        run: sleep 30
+
+      - name: Publish llm-registry-service
+        run: cargo publish --package llm-registry-service --token ${{ secrets.CRATES_SECRET }}
+        continue-on-error: true
+
+      - name: Wait for llm-registry-service to be available
+        run: sleep 30
+
+      - name: Publish llm-registry-api
+        run: cargo publish --package llm-registry-api --token ${{ secrets.CRATES_SECRET }}
+        continue-on-error: true
+
+      - name: Wait for llm-registry-api to be available
+        run: sleep 30
+
+      - name: Publish llm-registry-server
+        run: cargo publish --package llm-registry-server --token ${{ secrets.CRATES_SECRET }}
+        continue-on-error: true
