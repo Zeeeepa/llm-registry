@@ -1,0 +1,36 @@
+[package]
+name = "llm-registry-benchmarks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Time handling
+chrono = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+
+# System info
+num_cpus = "1.16"
+
+[dev-dependencies]
+# Testing
+tokio = { workspace = true, features = ["test-util", "macros"] }
+
+[[bin]]
+name = "bench-runner"
+path = "bin/main.rs"

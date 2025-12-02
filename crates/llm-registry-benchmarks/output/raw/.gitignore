@@ -1,0 +1,5 @@
+# Ignore all raw benchmark files
+*.json
+
+# Keep the directory structure
+!.gitignore

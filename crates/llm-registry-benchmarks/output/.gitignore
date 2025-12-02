@@ -1,0 +1,7 @@
+# Ignore all benchmark output files
+*.json
+*.csv
+*.md
+
+# Keep the directory structure
+!.gitignore
