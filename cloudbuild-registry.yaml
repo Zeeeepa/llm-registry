@@ -1,0 +1,21 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/llm-registry/llm-registry:ruvector'
+      - '-f'
+      - 'docker/Dockerfile'
+      - '--target'
+      - 'runtime'
+      - '.'
+    dir: '.'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/llm-registry/llm-registry:ruvector'
+
+options:
+  machineType: 'E2_HIGHCPU_32'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

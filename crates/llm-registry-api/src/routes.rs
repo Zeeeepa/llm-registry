@@ -138,12 +138,12 @@ fn build_v1_routes() -> Router<AppState> {
         // Asset management
         .route("/assets", post(register_asset))
         .route("/assets", get(list_assets))
-        .route("/assets/:id", get(get_asset))
-        .route("/assets/:id", patch(update_asset))
-        .route("/assets/:id", delete(delete_asset))
+        .route("/assets/{id}", get(get_asset))
+        .route("/assets/{id}", patch(update_asset))
+        .route("/assets/{id}", delete(delete_asset))
         // Dependencies
-        .route("/assets/:id/dependencies", get(get_dependencies))
-        .route("/assets/:id/dependents", get(get_dependents))
+        .route("/assets/{id}/dependencies", get(get_dependencies))
+        .route("/assets/{id}/dependents", get(get_dependents))
 }
 
 /// Route configuration

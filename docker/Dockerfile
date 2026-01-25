@@ -4,33 +4,14 @@
 # Features:
 # - Multi-stage builds for minimal image size
 # - Security hardening with non-root user
-# - Layer caching optimization
 # - gRPC/Protobuf support
 # - Health checks
-# - Multi-architecture support (amd64/arm64)
 # ============================================================================
 
 # -----------------------------------------------------------------------------
-# Stage 1: Planner - Analyze dependencies
+# Stage 1: Builder - Build application
 # -----------------------------------------------------------------------------
-FROM rust:1.75-bookworm AS planner
-
-WORKDIR /app
-
-# Install cargo-chef for dependency caching
-RUN cargo install cargo-chef
-
-# Copy manifests
-COPY Cargo.toml Cargo.lock ./
-COPY crates ./crates
-
-# Generate recipe file
-RUN cargo chef prepare --recipe-path recipe.json
-
-# -----------------------------------------------------------------------------
-# Stage 2: Builder - Build dependencies and application
-# -----------------------------------------------------------------------------
-FROM rust:1.75-bookworm AS builder
+FROM rust:latest AS builder
 
 WORKDIR /app
 
@@ -40,29 +21,20 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     protobuf-compiler \
     libprotobuf-dev \
-    musl-tools \
     && rm -rf /var/lib/apt/lists/*
-
-# Install cargo-chef for caching
-RUN cargo install cargo-chef
-
-# Copy recipe from planner
-COPY --from=planner /app/recipe.json recipe.json
-
-# Build dependencies (this layer will be cached unless dependencies change)
-RUN cargo chef cook --release --recipe-path recipe.json
 
 # Copy source code
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY migrations ./migrations
+COPY src ./src
 
 # Build application with all optimizations
-RUN cargo build --release --bin llm-registry-server && \
+RUN cargo build -p llm-registry-server --release && \
     strip /app/target/release/llm-registry-server
 
 # -----------------------------------------------------------------------------
-# Stage 3: Runtime - Minimal secure runtime image
+# Stage 2: Runtime - Minimal secure runtime image
 # -----------------------------------------------------------------------------
 FROM debian:bookworm-slim AS runtime
 
@@ -91,6 +63,9 @@ COPY --from=builder --chown=appuser:appuser /app/target/release/llm-registry-ser
 # Copy configuration files
 COPY --chown=appuser:appuser config ./config
 
+# Add health check script (before switching to non-root user)
+RUN printf '#!/bin/bash\nset -eo pipefail\nHTTP_STATUS=$(curl -s -o /dev/null -w "%%{http_code}" http://localhost:${SERVER_PORT:-3000}/health || echo "000")\nif [ "$HTTP_STATUS" = "200" ]; then\n  echo "Health check passed"\n  exit 0\nelse\n  echo "Health check failed with status: $HTTP_STATUS"\n  exit 1\nfi\n' > /usr/local/bin/healthcheck.sh && chmod +x /usr/local/bin/healthcheck.sh
+
 # Switch to non-root user
 USER appuser
 
@@ -105,25 +80,6 @@ ENV RUST_LOG=info \
     GRPC_HOST=0.0.0.0 \
     GRPC_PORT=50051 \
     ENVIRONMENT=production
-
-# Add health check script
-COPY --chown=appuser:appuser <<'EOF' /usr/local/bin/healthcheck.sh
-#!/bin/bash
-set -eo pipefail
-
-# Check HTTP health endpoint
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${SERVER_PORT:-3000}/health || echo "000")
-
-if [ "$HTTP_STATUS" = "200" ]; then
-    echo "Health check passed"
-    exit 0
-else
-    echo "Health check failed with status: $HTTP_STATUS"
-    exit 1
-fi
-EOF
-
-RUN chmod +x /usr/local/bin/healthcheck.sh
 
 # Health check configuration
 HEALTHCHECK --interval=30s \
@@ -141,66 +97,3 @@ LABEL org.opencontainers.image.title="LLM Registry Server" \
 
 # Run the application
 CMD ["llm-registry-server"]
-
-# -----------------------------------------------------------------------------
-# Stage 4: Development - Full development environment
-# -----------------------------------------------------------------------------
-FROM rust:1.75-bookworm AS development
-
-WORKDIR /app
-
-# Install development dependencies
-RUN apt-get update && apt-get install -y \
-    pkg-config \
-    libssl-dev \
-    protobuf-compiler \
-    libprotobuf-dev \
-    postgresql-client \
-    redis-tools \
-    curl \
-    vim \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install development tools
-RUN cargo install cargo-watch cargo-edit sqlx-cli cargo-audit cargo-outdated
-
-# Copy all files
-COPY . .
-
-# Expose ports for HTTP, gRPC, and debugger
-EXPOSE 3000 50051 9090
-
-# Set development environment variables
-ENV RUST_LOG=debug \
-    RUST_BACKTRACE=full \
-    SERVER_HOST=0.0.0.0 \
-    SERVER_PORT=3000
-
-# Default command for development
-CMD ["cargo", "watch", "-x", "run --bin llm-registry-server"]
-
-# -----------------------------------------------------------------------------
-# Stage 5: Testing - Optimized for running tests
-# -----------------------------------------------------------------------------
-FROM rust:1.75-bookworm AS testing
-
-WORKDIR /app
-
-# Install test dependencies
-RUN apt-get update && apt-get install -y \
-    pkg-config \
-    libssl-dev \
-    protobuf-compiler \
-    libprotobuf-dev \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install test tools
-RUN cargo install cargo-tarpaulin cargo-nextest
-
-# Copy source
-COPY . .
-
-# Default command runs all tests
-CMD ["cargo", "nextest", "run", "--all-features"]
